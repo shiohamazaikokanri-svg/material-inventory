@@ -1,0 +1,31 @@
+{% extends "inventory/base.html" %}
+
+{% block content %}
+<section class="panel import-panel">
+  <div>
+    <h1>Excel取込</h1>
+    <p>材料在庫のExcelファイルをアップロードします。取り込んだデータはSQLiteデータベースに追加されます。</p>
+  </div>
+
+  <form method="post" enctype="multipart/form-data" class="upload-form">
+    {% csrf_token %}
+    <label for="excel_file">Excelファイル</label>
+    <input id="excel_file" name="excel_file" type="file" accept=".xlsx,.xlsm" required>
+    <label class="check">
+      <input type="checkbox" name="replace_data" value="1" checked>
+      既存のSQLiteデータを削除して入れ替える
+    </label>
+    <button type="submit">取込</button>
+  </form>
+
+  <div class="columns-note">
+    Excelは取込時だけ読み込みます。材料一覧、検索、フィルター、集計はSQLiteデータベースを使用します。
+    <br>
+    <strong>必須列:</strong>
+    キー、材質、板厚、巾、長さ、枚数、重量
+    <br>
+    <strong>任意列:</strong>
+    メーカー、場所、番地
+  </div>
+</section>
+{% endblock %}

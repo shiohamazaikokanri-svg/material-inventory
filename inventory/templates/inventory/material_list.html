@@ -1,0 +1,112 @@
+{% extends "inventory/base.html" %}
+
+{% block content %}
+<section class="title-row">
+  <div>
+    <h1>材料一覧</h1>
+    <p>検索、材質・板厚の絞り込み、同一材料の集計、合計枚数・合計重量を確認できます。</p>
+  </div>
+  <a class="button" href="{% url 'inventory:import_excel' %}">Excel取込</a>
+</section>
+
+<form method="get" class="filters">
+  <label>
+    検索
+    <input name="q" value="{{ query }}" placeholder="キー、メーカー、材質、場所、番地">
+  </label>
+  <label>
+    材質
+    <select name="material">
+      <option value="">すべての材質</option>
+      {% for item in materials %}
+        <option value="{{ item }}" {% if item == selected_material %}selected{% endif %}>{{ item }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <label>
+    板厚
+    <select name="thickness">
+      <option value="">すべての板厚</option>
+      {% for item in thicknesses %}
+        <option value="{{ item }}" {% if item|stringformat:"s" == selected_thickness %}selected{% endif %}>{{ item }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <label class="check">
+    <input type="checkbox" name="group" value="1" {% if group %}checked{% endif %}>
+    同一材料を集計
+  </label>
+  <button type="submit">適用</button>
+  <a class="ghost" href="{% url 'inventory:material_list' %}">リセット</a>
+</form>
+
+<section class="summary">
+  <div>
+    <span>合計枚数</span>
+    <strong>{{ total_quantity }}</strong>
+  </div>
+  <div>
+    <span>合計重量</span>
+    <strong>{{ total_weight }}</strong>
+  </div>
+  <div>
+    <span>表示件数</span>
+    <strong>{{ page.paginator.count }}</strong>
+  </div>
+</section>
+
+<section class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        {% if not group %}<th>キー</th>{% endif %}
+        <th>メーカー</th>
+        <th>材質</th>
+        <th>板厚</th>
+        <th>巾</th>
+        <th>長さ</th>
+        <th>枚数</th>
+        <th>重量</th>
+        <th>場所</th>
+        {% if not group %}<th>番地</th>{% else %}<th>明細数</th>{% endif %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in page %}
+        <tr>
+          {% if not group %}<td data-label="キー">{{ item.key }}</td>{% endif %}
+          <td data-label="メーカー">{{ item.maker|default:"-" }}</td>
+          <td data-label="材質">{{ item.material }}</td>
+          <td data-label="板厚">{{ item.thickness }}</td>
+          <td data-label="巾">{{ item.width }}</td>
+          <td data-label="長さ">{{ item.length }}</td>
+          <td data-label="枚数">{{ item.quantity }}</td>
+          <td data-label="重量">{{ item.weight }}</td>
+          <td data-label="場所">{{ item.place|default:"-" }}</td>
+          {% if not group %}
+            <td data-label="番地">{{ item.address|default:"-" }}</td>
+          {% else %}
+            <td data-label="明細数">{{ item.rows }}</td>
+          {% endif %}
+        </tr>
+      {% empty %}
+        <tr>
+          <td colspan="10" class="empty">材料データがありません。</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+
+{% if page.paginator.num_pages > 1 %}
+  <nav class="pagination">
+    {% if page.has_previous %}
+      <a href="?page={{ page.previous_page_number }}&q={{ query }}&material={{ selected_material }}&thickness={{ selected_thickness }}{% if group %}&group=1{% endif %}">前へ</a>
+    {% endif %}
+    <span>{{ page.number }} / {{ page.paginator.num_pages }} ページ</span>
+    {% if page.has_next %}
+      <a href="?page={{ page.next_page_number }}&q={{ query }}&material={{ selected_material }}&thickness={{ selected_thickness }}{% if group %}&group=1{% endif %}">次へ</a>
+    {% endif %}
+  </nav>
+{% endif %}
+{% endblock %}
